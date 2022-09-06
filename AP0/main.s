@@ -14,74 +14,34 @@ INPUT_SIZE 	EQU 20
 		EXPORT Start
 			
 Start
-	
-	LDR R0,=RAM_POS_INPUT
+
+Saving
+	LDR R0,=RAM_POS_INPUT ;Endereço de entrada
 	LDR R1,=INPUT
 	LDR R2,=INPUT_SIZE
 	
-saving
+nextInput
 	SUB R2,#1
 	CMP R2,#0
-	BMI primes ;Se é negativo
+	BMI SavingFim ;Se não tem mais item
 	
 	LDRB R3,[R1],#1
 	STRB R3,[R0],#1
-	B saving
-
-primes
-
+	B nextInput
+SavingFim
+	MOV R10,R0 ;Salva ultimo endereço no R10
+	
 ; *****************************************
 ; * 		    Primos  				  *
 ; *****************************************
 
-	CarregaListaNumeros
-	LDR R0, =Aleatorios
-	
-	MOV R1, #65
-	STRB R1, [R0], #1
-	MOV R1, #197
-	STRB R1, [R0], #1
-	MOV R1, #141
-	STRB R1, [R0], #1
-	MOV R1, #173
-	STRB R1, [R0], #1
-	MOV R1, #37
-	STRB R1,[R0],  #1
-	MOV R1, #129
-	STRB R1, [R0], #1
-	MOV R1, #211
-	STRB R1, [R0], #1
-	MOV R1, #5
-	STRB R1, [R0], #1
-	MOV R1, #207
-	STRB R1, [R0], #1
-	MOV R1, #3
-	STRB R1, [R0], #1
-	MOV R1, #23
-	STRB R1, [R0], #1
-	MOV R1, #17
-	STRB R1, [R0], #1
-	MOV R1, #209
-	STRB R1, [R0], #1
-	MOV R1, #243
-	STRB R1, [R0], #1
-	MOV R1, #179
-	STRB R1, [R0], #1
-	MOV R1, #241
-	STRB R1, [R0], #1 
-	MOV R1, #237
-	STRB R1, [R0], #1
-	MOV R1, #107
-	STRB R1, [R0], #1
-	MOV R1, #111
-	STRB R1, [R0], #1
-	MOV R1, #21
-	STRB R1, [R0], #1
+Primes
 
 	; conferir a numeracao dos registradores
-	LDR R1, =Aleatorios ;Registrador read
-	LDR R2, =Primos ;Registrador write
+	LDR R1, =RAM_POS_INPUT ;Registrador read
+	LDR R2, =RAM_POS_PRIMES ;Registrador write
 	MOV R4, #0 ;comprimento da lista de primos
+	MOV R0,R10 ;Endereço do último valor de entrada
 
 TestaSePrimo
 	CMP R0, R1
@@ -109,11 +69,11 @@ CopiaPrimo
 	B TestaSePrimo
 
 FimPrimos
-	
+	MOV R10,R2
 ; *****************************************
 ; * 			Bubblesort				  *
 ; *****************************************
-	LDR R5,=RAM_POS_INPUT	;PRIMEIRO PRIMO    --TROCAR QUANDO FILTRAR OS PRIMOS
+	LDR R5,=RAM_POS_PRIMES	;PRIMEIRO PRIMO    --TROCAR QUANDO FILTRAR OS PRIMOS
 	MOV R6,R10				;ULTIMO PRIMO	   --TROCAR QUANDO FILTRAR OS PRIMOS
 	
 Bubblesort
