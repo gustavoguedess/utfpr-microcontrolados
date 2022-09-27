@@ -82,34 +82,6 @@ MainLoop
 	
 	
 	B MainLoop                   ;Volta para o laço principal	
-;	BL Incrementa_Contador
-;	MOV R0,#500
-;	BL SysTick_Wait1ms
-	
-;Verifica_Nenhuma
-;	CMP	R0, #2_00000011			 ;Verifica se nenhuma chave está pressionada
-;	BNE Verifica_SW1			 ;Se o teste viu que tem pelo menos alguma chave pressionada pula
-;	MOV R0, #0                   ;Não acender nenhum LED
-;	BL PortF_Output			 	 ;Chamar a função para não acender nenhum LED
-;	B MainLoop					 ;Se o teste viu que nenhuma chave está pressionada, volta para o laço principal
-;Verifica_SW1	
-;	CMP R0, #2_00000010			 ;Verifica se somente a chave SW1 está pressionada
-;	BNE Verifica_SW2             ;Se o teste falhou, pula
-;	MOV R0, #2_00010000			 ;Setar o parâmetro de entrada da função como o BIT4
-;	BL PortF_Output				 ;Chamar a função para setar o LED3
-;	B MainLoop                   ;Volta para o laço principal
-;Verifica_SW2	
-;	CMP R0, #2_00000001			 ;Verifica se somente a chave SW2 está pressionada
-;	BNE Verifica_Ambas           ;Se o teste falhou, pula
-;	MOV R0, #2_00000001			 ;Setar o parâmetro de entrada da função como o BIT0
-;	BL PortF_Output				 ;Chamar a função para setar o LED4
-;	B MainLoop                   ;Volta para o laço principal	
-;Verifica_Ambas
-;	CMP R0, #2_00000000			 ;Verifica se ambas as chaves estão pressionadas
-;	BNE MainLoop          		 ;Se o teste falhou, pula
-;	MOV R0, #2_00010001			 ;Setar o parâmetro de entrada da função como o BIT0
-;                                 ;e o BIT4
-	
 
 
     ALIGN                        ;Garante que o fim da seção está alinhada 
