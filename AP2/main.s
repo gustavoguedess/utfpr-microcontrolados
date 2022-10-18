@@ -18,6 +18,10 @@
 ; Área de Dados - Declarações de variáveis
 		AREA  DATA, ALIGN=2
 
+password			SPACE		10
+master_password		DCB 		"1234#",0
+
+
 ; -------------------------------------------------------------------------------
 ; Área de Código - Tudo abaixo da diretiva a seguir será armazenado na memória de 
 ;                  código
@@ -31,20 +35,23 @@
 		IMPORT 	SysTick_Init
 			
 		IMPORT GPIO_Init
+		IMPORT Data_Init
 		IMPORT Listen_Keyboard
-
+		IMPORT Update_Display
 Start
 	BL SysTick_Init
 	BL GPIO_Init
+	BL Data_Init
 
 ; -------------------------------------------------------------------------------
 ; Função main()
 MainLoop
-	BL Listen_Keyboard
-	; -- Codigo aqui
+	BL Listen_Keyboard ; Retorna o caractere lido em R8
+	
+	BL Update_Display
  	NOP 
 	
-	MOV R0,#100
+	MOV R0,#1
 	BL SysTick_Wait1ms
 	
 	B MainLoop                   ;Volta para o laço principal	

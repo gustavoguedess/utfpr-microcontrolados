@@ -62,16 +62,37 @@ GPIO_PORTM_PUR_R     		EQU    	0x40063510
 GPIO_PORTM_DATA_R    		EQU    	0x400633FC
 GPIO_PORTM               	EQU    	0x00000800
 
-TESTE						EQU	0x20000000
+DEBUG_KEYBOARD_CHAR			EQU 	0x20000000
+DEBUG_KEYBOARD_ROWS			EQU		0x20000020
+	
+modo_cofre					EQU		0x20000040
+MODO_COFRE_ABERTO			EQU		0x00
+MODO_COFRE_FECHADO			EQU		0x01
+MODO_COFRE_ABRINDO			EQU		0x02
+
+RS							EQU		2_001
+RW							EQU		2_010
+E							EQU		2_100
+	
 ; -------------------------------------------------------------------------------
 ; Área de Código - Tudo abaixo da diretiva a seguir será armazenado na memória de 
 ;                  código
         AREA    |.text|, CODE, READONLY, ALIGN=2
+			
+; Teclado ordem
+KEYBOARD_CHARS			DCB		"123A456B789C*0#D",0
+DISPLAY_COFRE_ABERTO	DCB		"Cofre aberto, digite nova senha para fechar o cofre",0
+DISPLAY_COFRE_FECHADO	DCB		"Cofre fechando",0
+DISPLAY_COFRE_ABRINDO	DCB		"Cofre abrindo",0
+DISPLAY_COFRE_TRAVADO	DCB		"Cofre Travado",0
 
 		EXPORT GPIO_Init
+		EXPORT Data_Init
 		EXPORT Listen_Keyboard
-		
+		EXPORT Update_Display
+			
 		IMPORT 	SysTick_Wait1ms
+		IMPORT 	SysTick_Wait1us
 			
 ;--------------------------------------------------------------------------------
 ; Função InicializaGPIO
@@ -122,11 +143,11 @@ EsperaGPIO  LDR   R2, [R0]							;Lê da memória o conteúdo do endereço do regist
 			STR   R1, [R0]
 			
 			LDR   R0, =GPIO_PORTL_DIR_R
-			MOV   R1, #2_00000000				; pinos 0,1,2,3 (linhas teclado) são definidos como saída
+			MOV   R1, #2_00001111				; pinos 0,1,2,3 (linhas teclado) são definidos como saída
 			STR   R1, [R0]
 			
 			LDR   R0, =GPIO_PORTM_DIR_R
-			MOV   R1, #2_11110111				; pinos 0,1,2 do port M serão saídas
+			MOV   R1, #2_00000111				; pinos 0,1,2 do port M serão saídas
 												; pinos 7 a 4 começam como alta impedância
 			STR   R1, [R0]
 
@@ -161,20 +182,28 @@ EsperaGPIO  LDR   R2, [R0]							;Lê da memória o conteúdo do endereço do regist
 			MOV   R1, #2_0001					; pino 0 do port J tem o USR_SW1
 			STR   R1, [R0]
 
-			LDR   R0, =GPIO_PORTL_PUR_R
-			MOV   R1, #2_00001111				; pinos 4,5,6,7 do port M tem pull-up ativado
+			LDR   R0, =GPIO_PORTM_PUR_R
+			MOV   R1, #2_11110000				; pinos 4,5,6,7 do port M tem pull-up ativado
             STR   R1, [R0]
 			
 ;retorno
 			BX    LR
 
 
+; -------------------------------------------------------------------------------
+Data_Init
+	LDR R12,=modo_cofre
+	MOV R11,=MODO_COFRE_ABERTO
+	STRB R11,[R12]
+	
+	BX LR
 			
-; ========================== TECLADO ==========================
+; ====================================== TECLADO ======================================
+
 ; -------------------------------------------------------------------------------
 ; Função Listen_Keyboard
 ; Parâmetro de entrada: Não tem
-; Parâmetro de saída: R8
+; Parâmetro de saída: R8 <- Caractere pressionado, caso tenha
 ; Modifica: R9, R10,R11,R12
 Listen_Keyboard
 ; *******************************************************************************
@@ -190,7 +219,7 @@ next_column
 	BL Turn_On_Column_Keyboard
 	; Espera 1ms
 	MOV R0,#1
-	BL SysTick_Wait1ms
+	BL SysTick_Wait1us
 	; Pega caractere ativo
 	BL Listen_Key
 	
@@ -201,26 +230,37 @@ next_column
 	
 	; Desliga todas as colunas
 	BL Turn_Off_Columns_Keyboard
+
+	; --- DEBUG SHOW KEYBOARD CHAR ---
+	LDR R12,=DEBUG_KEYBOARD_CHAR
+	STRB R8,[R12]
+	; --------------------------------
 	
 	POP {LR}
 	BX LR
 	
 ; -------------------------------------------------------------------------------
 ; Função Turn_On_Column_Keyboard
-; Parâmetro de entrada: Não tem
-; Parâmetro de saída: R9 <- coluna a ser ativada no teclado (0 a 3)
+; Parâmetro de entrada: R9 <- coluna a ser ativada no teclado (0 a 3)
+; Parâmetro de saída: Não tem
 ; Modifica: R10,R11,R12
 Turn_On_Column_Keyboard
 ; *******************************************************************************
 ; Liga um coluna do teclado 
 ; *******************************************************************************
 	MOV R10,#2_1
-	LSL R10,R10,R9	; Máscara da coluna a ser ligada
+	LSL R10,R10,R9	; Máscara da coluna a ser ligada (0x10, 0x20, 0x40 ou 0x80)
 	
-	LDR R12,=GPIO_PORTM_DATA_R
+	LDR R12,=GPIO_PORTL_DIR_R
 	LDR R11,[R12]
-	AND R11,#2_00001111 ; Desativa todas as linhas
+	BIC R11,#0x0F
 	ORR R11,R10
+	STR R11,[R12]
+	
+	LDR R12,=GPIO_PORTL_DATA_R
+	LDR R11,[R12] 	; Lê as portas que estão definidas
+	ORR R11,#0x0F 	; Desativa todas as colunas do teclado setando com 1 
+	BIC R11,R10		; Seta a coluna como 0 para ativar
 	STR R11,[R12]
 	BX LR
 		
@@ -230,9 +270,15 @@ Turn_On_Column_Keyboard
 ; Parâmetro de saída: Não tem
 ; Modifica: R11,R12
 Turn_Off_Columns_Keyboard
-	LDR R12,=GPIO_PORTM_DATA_R
+	LDR R12,=GPIO_PORTL_DATA_R
 	LDR R11,[R12]
-	AND R11,#2_00001111 ; Desativa todas as linhas
+	ORR R11,#0x0F ; Desativa todas as linhas
+	STR R11,[R12] 
+	
+	
+	LDR R12,=GPIO_PORTL_DIR_R
+	LDR R11,[R12]
+	ORR R11,#0x0F ; Seta todas as colunas como 0 para mudar para direção de entrada
 	STR R11,[R12] 
 
 	BX LR
@@ -240,23 +286,91 @@ Turn_Off_Columns_Keyboard
 ; -------------------------------------------------------------------------------
 ; Função Listen_Key
 ; Parâmetro de entrada: R9 <- coluna a ser ativada no teclado (0 a 3)
-; Parâmetro de saída: R8 <- Caractere ativado, caso tenha
-; Modifica: R11,R12
+; Parâmetro de saída: R8 <- Caractere pressionado, caso tenha
+; Modifica: R10,R11,R12
 Listen_Key
 ; *******************************************************************************
 ; Liga um coluna do teclado 
 ; *******************************************************************************
-	LDR R11,=GPIO_PORTL_DATA_R
-	LDR R12,[R11]
-	LDR R11,=TESTE
-	STR R12,[R11,R9]
-	NOP
+	; Faz a leitura da linha
+	LDR R12,=GPIO_PORTM_DATA_R
+	LDR R11,[R12]
+	
+	; -- DEBUG write the row values --
+	LDR R12,=DEBUG_KEYBOARD_ROWS
+	STRB R11,[R12,R9]
+	; --------------------------------
+	
+	; Posiciona o caractere inicial da linha
+	LDR R12,=KEYBOARD_CHARS	
+	MOV R10,#4 		; Quantidade de dígitos que tem cada coluna
+	MUL R10,R10,R9 	; Quandos caracteres precisa pular
+	ADD R12,R10		; Caractere que começa a linha
+	
+	LSR R11,#4 ; Desloca o dado lido 4 bits para a direita (0xE0-> 0x0E)
+	
+	MOV R10,#0
+check_key
+	LSRS R11,#1
+	IT CC
+		LDRCC R8,[R12,R10]
+	ADD R10,#1
+	CMP R10,#4
+	BLT check_key
+	
+	
+	BX LR
+	
+
+; ====================================== DISPLAY ======================================
+Update_Display
+	; TODO 
 	
 	BX LR
 
 
+;---------------------------------------------------------------------------------
+; Entrada: R9 <- comando
+Send_Comand_LCD
+	; TODO
+	
+	BX LR
 
 ;---------------------------------------------------------------------------------
+Display_Init
+	PUSH {LR}
+	
+	; Inicializar modo 2 linhas
+	LDR R9,#0x38 
+	BL Send_Comand_LCD
+	MOV R0,#40
+	BL SysTick_Wait1us
+	
+	; Autoincremento para a direita
+	LDR R9,#0x06
+	BL Send_Comand_LCD
+	MOV R0,#40
+	BL SysTick_Wait1us
+	
+	; Configurar o cursor
+	LDR R9,#0x0E
+	BL Send_Comand_LCD
+	MOV R0,#40
+	BL SysTick_Wait1us
+	
+	; Resetar display
+	LDR R9,#0x01
+	BL Send_Comand_LCD
+	MOV R0,#2
+	BL SysTick_Wait1ms
+	
+	POP {LR}
+	BX LR
+
+
+;---------------------------------------------------------------------------------
+
+
 
     ALIGN                           ; garante que o fim da seção está alinhada 
 	END                             ; fim do arquivo
