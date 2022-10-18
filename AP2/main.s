@@ -18,8 +18,6 @@
 ; Área de Dados - Declarações de variáveis
 		AREA  DATA, ALIGN=2
 
-password			SPACE		10
-master_password		DCB 		"1234#",0
 
 
 ; -------------------------------------------------------------------------------
@@ -36,20 +34,33 @@ master_password		DCB 		"1234#",0
 			
 		IMPORT GPIO_Init
 		IMPORT Data_Init
+		IMPORT Display_Init
 		IMPORT Listen_Keyboard
+		IMPORT Write_Input
+		IMPORT Check_Confirm
 		IMPORT Update_Display
 Start
 	BL SysTick_Init
 	BL GPIO_Init
 	BL Data_Init
+	BL Display_Init
 
 ; -------------------------------------------------------------------------------
 ; Função main()
 MainLoop
-	BL Listen_Keyboard ; Retorna o caractere lido em R8
+	; Retorna o caractere lido em R8. 
+	BL Listen_Keyboard 
 	
+	; Escreve o caractere no Input, se houver algum botão pressionado
+	BL Write_Input
+	
+	; Checa se foi pressionado o botão #
+	BL Check_Confirm
+	
+	; Atualiza o display com o testo
 	BL Update_Display
- 	NOP 
+ 	
+	NOP 
 	
 	MOV R0,#1
 	BL SysTick_Wait1ms
