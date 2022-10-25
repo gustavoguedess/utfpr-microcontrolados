@@ -27,12 +27,16 @@ Project File Date:  10/16/2022
 <h2>Output:</h2>
 *** Using Compiler 'V6.18', folder: 'C:\Keil_v5\ARM\ARMCLANG\Bin'
 Build target 'Target 1'
-"gpio.s", line 129: Warning: A1581W: Added 1 bytes of padding at address 0xa9
-  129 000000aa    LDR   R0, =SYSCTL_RCGCGPIO_R   ;Carrega o endere?do registrador RCGCGPIO
-0 Errors, 1 Warning
+"gpio.s", line 183: Warning: A1581W: Added 1 bytes of padding at address 0xb1
+  183 000000b2    LDR   R0, =SYSCTL_RCGCGPIO_R   ;Carrega o endere?do registrador RCGCGPIO
+"gpio.s", line 383: Warning: A1581W: Added 2 bytes of padding at address 0x242
+  383 00000244  LTORG
+"gpio.s", line 709: Warning: A1581W: Added 2 bytes of padding at address 0x546
+  709 00000548  LTORG
+0 Errors, 3 Warnings
 assembling gpio.s...
 linking...
-Program Size: Code=2408 RO-data=0 RW-data=0 ZI-data=1024  
+Program Size: Code=3084 RO-data=0 RW-data=0 ZI-data=1024  
 ".\Objects\AP2.axf" - 0 Error(s), 0 Warning(s).
 
 <h2>Software Packages used:</h2>

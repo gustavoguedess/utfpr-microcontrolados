@@ -39,6 +39,7 @@
 		IMPORT Write_Input
 		IMPORT Check_Confirm
 		IMPORT Update_Display
+		IMPORT Pisca_Led
 Start
 	BL SysTick_Init
 	BL GPIO_Init
@@ -60,7 +61,7 @@ MainLoop
 	; Atualiza o display com o testo
 	BL Update_Display
  	
-	NOP 
+	BL Pisca_Led 
 	
 	MOV R0,#1
 	BL SysTick_Wait1ms
