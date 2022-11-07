@@ -1,9 +1,18 @@
 
 #include <stdint.h>
-#include "C:\tm4c1294ncpdt.h"
+#include "tm4c1294ncpdt.h"
 
+
+#define GPIO_PORTQ 1<<14
+#define GPIO_PORTA 1<<0
+#define GPIO_PORTP 1<<13
 
 void leds_init(void){
+	//1. Ativa o Clock
+	SYSCTL_RCGCGPIO_R |= (GPIO_PORTQ | GPIO_PORTA | GPIO_PORTP);
+	
+	while( (SYSCTL_PRGPIO_R & (GPIO_PORTQ|GPIO_PORTA|GPIO_PORTP) ) != (GPIO_PORTQ|GPIO_PORTA|GPIO_PORTP) ){};
+		
 	//2. Zera os AMSEL
 	GPIO_PORTQ_AMSEL_R = 0x00;
 	GPIO_PORTA_AHB_AMSEL_R = 0x00;

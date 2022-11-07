@@ -414,6 +414,16 @@
               <FileType>1</FileType>
               <FilePath>.\gpio.c</FilePath>
             </File>
+            <File>
+              <FileName>teclado.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\teclado.c</FilePath>
+            </File>
+            <File>
+              <FileName>motor_passo.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\motor_passo.c</FilePath>
+            </File>
           </Files>
         </Group>
       </Groups>
