@@ -10,31 +10,68 @@ void SysTick_Init(void);
 void SysTick_Wait1ms(uint32_t delay);
 void SysTick_Wait1us(uint32_t delay);
 void GPIO_Init(void);
+
+/* Funções led */
 void liga_leds(uint8_t value);
-void motor_passo_proximo_mov(void);
-void set_velocidade(uint8_t veloc);
 
+/* Funções do motor*/
+void config_motor(uint8_t _sentido, uint8_t _velocidade);
+void proximo_passo(void);
+uint32_t get_passos_por_voltas(uint8_t voltas);
+uint8_t get_parte(void);
 
-int main(){
+enum estado{
+	INICIO,
+	GIRANDO,
+	FIM
+} estado;
+
+void parar(void){
+	estado = FIM;
+}
+
+void girar_motor(uint8_t voltas, uint8_t sentido, uint8_t velocidade) {
+	uint32_t i;
+	uint32_t tot_passos;
+	uint8_t parte;
+	
+	estado = GIRANDO;
+	
+	// Configura o sentido e a velocidade
+	config_motor(sentido, velocidade);
+	
+	// Pega a quantidade de passos por voltas
+	tot_passos = get_passos_por_voltas(voltas);
+	
+	for(i=0; i<tot_passos; i++) {
+		if(estado!=GIRANDO) break;
+		
+		// Move o motor
+		proximo_passo();
+		
+		// Acende o led
+		parte = get_parte();
+		liga_leds(1<<parte);
+		
+		// Espera 2ms
+		SysTick_Wait1ms(2);
+	}
+	
+	parar();
+}
+
+/* Função main */
+int main() {
 	PLL_Init();
 	SysTick_Init();
 	GPIO_Init();
 	
-	uint16_t i;
+	//girar_motor(1,1,0);
+	//girar_motor(1,0,0);
+	//girar_motor(3,1,0);
 	
-	
-	set_velocidade(0);
-	for(i=0;i<4096;i++){
-		motor_passo_proximo_mov();
-		SysTick_Wait1ms(2);
+	while(1){
+		estado = INICIO;
+		while(get_tecla()!='*'){};
 	}
-	
-	set_velocidade(1);
-	for(i=0;i<2048;i++){
-		motor_passo_proximo_mov();
-		SysTick_Wait1ms(2);
-	}
-	
-	while(1){}
-	
 }

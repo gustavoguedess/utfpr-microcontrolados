@@ -6,6 +6,26 @@
 #define GPIO_PORTL 1<<10
 #define GPIO_PORTM 1<<11
 
+uint8_t valores[4][4] = {
+	{'1','2','3','A'},
+	{'4','5','6','B'},
+	{'7','8','9','C'},
+	{'*','0','#','D'}
+}
+
+enum colunas{
+	PRIMEIRA_COLUNA,
+	SEGUNDA_COLUNA,
+	TERCEIRA_COLUNA,
+	QUARTA_COLUNA
+};
+enum linhas{
+	PRIMEIRA_LINHA,
+	SEGUNDA_LINHA,
+	TERCEIRA_LINHA,
+	QUARTA_LINHA
+};
+
 void teclado_init(void){
 	//1. Ativa o Clock
 	SYSCTL_RCGCGPIO_R |= (GPIO_PORTL|GPIO_PORTM);
@@ -34,3 +54,17 @@ void teclado_init(void){
 	GPIO_PORTM_PUR_R = 0xF0;
 }
 
+void ligar_coluna(uint8_t col){
+	GPIO_PORTL_DIR_R&=~(1<<col);
+}
+void desligar_coluna(void){
+	GPIO_PORTL_DATA_R|=0x0F;
+	GPIO_PORTL_DIR_R|=0x0F;
+}
+uint8_t get_tecla(void){
+	uint8_t col;
+	for(col=PRIMEIRA_COLUNA; col<=QUARTA_COLUNA; col++){
+		ligar_coluna(col);
+	}
+	desligar_colunas();
+}

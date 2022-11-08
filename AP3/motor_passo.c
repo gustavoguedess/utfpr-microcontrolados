@@ -5,21 +5,21 @@
 
 #define GPIO_PORTH 1<<7
 
+uint8_t passocompleto[4] = {0x08,0x04,0x02,0x01};
 uint8_t meiopasso[8] = {0x08,0x0C,0x04,0x06,0x02,0x03,0x01,0x09};
-uint8_t passocompleto[8] = {0x08,0x04,0x02,0x01,0x08,0x04,0x02,0x01};
-int8_t estado;
+uint32_t passo;
 
 enum {
 	MEIO_PASSO,
 	PASSO_COMPLETO
 } velocidade;
 
-enum{
+enum {
 	HORARIO,
 	ANTIHORARIO
 } sentido;
 
-void motor_passo_init(void){
+void motor_passo_init(void) {
 	//1. Ativa o Clock
 	SYSCTL_RCGCGPIO_R |= (GPIO_PORTH);
 	
@@ -44,40 +44,41 @@ void motor_passo_init(void){
 	// Inicialmente desligado
 	GPIO_PORTH_AHB_DATA_R = 0x00;
 	
-	estado = 0;
+	passo = 0;
 	velocidade = PASSO_COMPLETO;
 	sentido = HORARIO;
 }
 
-void set_velocidade(uint8_t veloc){
-	velocidade = veloc;
+void config_motor(uint8_t _sentido, uint8_t _velocidade) {
+	sentido = _sentido; velocidade = _velocidade;
 }
 
-void set_sentido(uint8_t sentid){
-	sentido = sentid;
-}
-
-void motor_passo_proximo_mov(void){
-	if(sentido == HORARIO) estado++;
-	else estado--;
-	
-	if(estado==-1) estado=7;
-	estado%=8;
-	
-	uint8_t value;
+uint32_t get_passos_por_voltas(uint8_t voltas) {
+	uint32_t tot_passos;
 	if(velocidade==PASSO_COMPLETO)
-		value = passocompleto[estado];
-	else
-		value = meiopasso[estado];
-	
-	GPIO_PORTH_AHB_DATA_R = value;
+		tot_passos = voltas*2048;
+	if(velocidade==MEIO_PASSO)
+		tot_passos = voltas*4096;
+	return tot_passos;
 }
 
-uint8_t get_pizza(){
-	uint8_t result;
+void proximo_passo(void) {
+	if(sentido == HORARIO) passo--;
+	if(sentido == ANTIHORARIO) passo++;
+	if(velocidade==PASSO_COMPLETO) 	passo = (passo+2048)%2048;
+	if(velocidade==MEIO_PASSO)			passo = (passo+4096)%4096;
+	
+	if(velocidade==PASSO_COMPLETO)
+		GPIO_PORTH_AHB_DATA_R = passocompleto[passo%4];
+	if(velocidade==MEIO_PASSO)
+		GPIO_PORTH_AHB_DATA_R = meiopasso[passo%8];
+}
+
+uint8_t get_parte(void) {
+	uint8_t result = 0;
 	if(velocidade == PASSO_COMPLETO)
-			result = passos/256;
+			result = passo/256;
 	if(velocidade == MEIO_PASSO)
-			result = passos/512;
+			result = passo/512;
 	return result;
 }
