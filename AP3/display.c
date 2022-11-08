@@ -26,6 +26,8 @@ void execute_LCD(uint8_t rs, uint8_t comando, uint32_t tempo){
 }
 
 void print_lcd(uint8_t str[]){
+	// Reseta Display
+	execute_LCD(0,0x01,2000);
 	// Set Cursor posição (0,0)
 	execute_LCD(0, 0x80,40);
 	

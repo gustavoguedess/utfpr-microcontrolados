@@ -63,6 +63,17 @@ void girar_motor(uint8_t voltas, uint8_t sentido, uint8_t velocidade) {
 		parte = get_parte();
 		liga_leds(1<<parte);
 		
+		if(i%2048==0){
+			uint8_t texto[8];
+			texto[0] = voltas-1-(velocidade!=0? i/2048:i/4096)+'0';
+			texto[1] = ' ';
+			texto[2] = sentido+'0';
+			texto[3] = ' ';
+			texto[4] = velocidade+'0';
+			texto[5] = '\0';
+			print_lcd((uint8_t*) texto);
+		}
+		
 		// Espera 2ms
 		SysTick_Wait1ms(2);
 	}
@@ -76,24 +87,28 @@ int main() {
 	SysTick_Init();
 	GPIO_Init();
 	
-	//girar_motor(1,1,0);
-	//girar_motor(1,0,0);
-	//girar_motor(3,1,0);
 	uint8_t voltas;
 	uint8_t sentido;
 	uint8_t velocidade;
 	
 	while(1){
 		estado = INICIO;
+		print_lcd((uint8_t *)"FIM");
 		while(get_tecla()!='*'){};
+			
+		print_lcd((uint8_t *)"VOLTAS");
 			
 		// Coleta voltas
 		voltas = get_num();
 		if(voltas==0) voltas=10;
 			
+			
+		print_lcd((uint8_t *)"SENTIDO");
 		// Coleta sentido
 		sentido = get_num();
+		
 			
+		print_lcd((uint8_t *)"VELOCIDADE");
 		// Coleta velocidade
 		velocidade = get_num();
 			
