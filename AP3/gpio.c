@@ -15,4 +15,5 @@ void GPIO_Init(void){
 	leds_init();
 	motor_passo_init();
 	botao_init();
+	teclado_init();
 }

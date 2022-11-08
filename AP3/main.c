@@ -20,6 +20,10 @@ void proximo_passo(void);
 uint32_t get_passos_por_voltas(uint8_t voltas);
 uint8_t get_parte(void);
 
+/* Funções teclado */
+uint8_t get_tecla(void);
+uint8_t get_num(void);
+
 enum estado{
 	INICIO,
 	GIRANDO,
@@ -69,9 +73,24 @@ int main() {
 	//girar_motor(1,1,0);
 	//girar_motor(1,0,0);
 	//girar_motor(3,1,0);
+	uint8_t voltas;
+	uint8_t sentido;
+	uint8_t velocidade;
 	
 	while(1){
 		estado = INICIO;
 		while(get_tecla()!='*'){};
+			
+		// Coleta voltas
+		voltas = get_num();
+		if(voltas==0) voltas=10;
+			
+		// Coleta sentido
+		sentido = get_num();
+			
+		// Coleta velocidade
+		velocidade = get_num();
+			
+		girar_motor(voltas,sentido,velocidade);
 	}
 }

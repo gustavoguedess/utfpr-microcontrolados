@@ -61,6 +61,7 @@ MainLoop
 	; Atualiza o display com o testo
 	BL Update_Display
  	
+	; Pisca Led
 	BL Pisca_Led 
 	
 	MOV R0,#1

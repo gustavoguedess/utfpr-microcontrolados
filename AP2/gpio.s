@@ -1048,6 +1048,7 @@ Pisca_Led
 	MOV R0,#5
 	BL SysTick_Wait1ms
 	
+	;	Shift pra direita
 	ROR R10,R10,#1
 	LDR R12,=block_leds
 	STR R10,[R12]
@@ -1061,8 +1062,11 @@ Pisca_Led
 GPIOPortJ_Handler
 	
 	PUSH {LR}
+	
+	
 	BL Master_Pass_Cofre
 
+	; Possibilita interromper de novo
 	LDR R0, =GPIO_PORTJ_AHB_ICR_R
 	MOV R1, #0x01
 	STR R1, [R0]
