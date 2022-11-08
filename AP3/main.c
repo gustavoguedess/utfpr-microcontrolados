@@ -24,12 +24,18 @@ uint8_t get_parte(void);
 uint8_t get_tecla(void);
 uint8_t get_num(void);
 
+/* Funções teclado */
+void print_lcd(uint8_t str[]);
+
 enum estado{
 	INICIO,
 	GIRANDO,
 	FIM
 } estado;
 
+uint8_t esta_girando(void) {
+	return estado==GIRANDO;
+}
 void parar(void){
 	estado = FIM;
 }

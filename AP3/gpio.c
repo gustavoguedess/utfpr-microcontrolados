@@ -9,6 +9,8 @@ void leds_init(void);
 void motor_passo_init(void);
 void botao_init(void);
 void teclado_init(void);
+void temporizador_init(void);
+void display_init(void);
 
 void GPIO_Init(void){
 	SYSCTL_RCGCGPIO_R = 0x00;
@@ -16,4 +18,6 @@ void GPIO_Init(void){
 	motor_passo_init();
 	botao_init();
 	teclado_init();
+	temporizador_init();
+	display_init();
 }
